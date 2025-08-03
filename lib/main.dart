@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
+
+// [SliverOverlapAbsorber] and [SliverOverlapInjector] 用于解决Appbar收缩时非当前显示的滑动组件出现的‘初始滑动偏移’
+// [CustomScrollView] 增加 PageStorageKey 用于缓存当前滑动偏移位置
+// CustomScrollView 的 primary: true 表示该滚动视图是“主要滚动视图”, 用于与NestedScrollView的滑动联动
+
+
 void main() {
   runApp(MaterialApp(home: NativeScrollWithCollapseAppBar()));
 }
@@ -15,12 +21,15 @@ class NativeScrollWithCollapseAppBar extends StatefulWidget {
 class _NativeScrollWithCollapseAppBarState
     extends State<NativeScrollWithCollapseAppBar>
     with TickerProviderStateMixin {
-  late TabController _bookingTabController;
-  late TabController _requestTabController;
-  late TabController _notificationTabController;
+  ValueNotifier<int> bottomNavigationIndex = ValueNotifier(0);
+
   final List<String> bookingTabs = ['Booking 1', 'Booking 2'];
   final List<String> requestTabs = ['Request 1', 'Request 2', 'Request 3'];
   final List<String> notificationTabs = ['Notification 1', 'Notification 2'];
+
+  late TabController _bookingTabController;
+  late TabController _requestTabController;
+  late TabController _notificationTabController;
 
   @override
   void initState() {
@@ -38,8 +47,6 @@ class _NativeScrollWithCollapseAppBarState
       vsync: this,
     );
   }
-
-  ValueNotifier<int> bottomNavigationIndex = ValueNotifier(0);
 
   @override
   Widget build(BuildContext context) {
@@ -344,124 +351,3 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     return false;
   }
 }
-
-// import 'dart:io';
-//
-// import 'package:flutter/material.dart';
-//
-// void main() => runApp(MyApp());
-//
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       theme: ThemeData(primaryColor: Colors.white),
-//       home: NewsScreen(),
-//       debugShowCheckedModeBanner: false,
-//     );
-//   }
-// }
-//
-// class NewsScreen extends StatefulWidget {
-//   @override
-//   State<StatefulWidget> createState() => _NewsScreenState();
-// }
-//
-// class _NewsScreenState extends State<NewsScreen> {
-//   final List<String> _tabs = <String>["Featured", "Popular", "Latest"];
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Material(
-//       child: Scaffold(
-//         body: DefaultTabController(
-//           length: _tabs.length,
-//           child: NestedScrollView(
-//             headerSliverBuilder:
-//                 (BuildContext context, bool innerBoxIsScrolled) {
-//                   return <Widget>[
-//                     SliverOverlapAbsorber(
-//                       handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-//                         context,
-//                       ),
-//                       sliver: SliverSafeArea(
-//                         top: false,
-//                         bottom: Platform.isIOS ? false : true,
-//                         sliver: SliverAppBar(
-//                           title: Text('Tab Demo'),
-//                           floating: true,
-//                           pinned: true,
-//                           snap: true,
-//                           forceElevated: innerBoxIsScrolled,
-//                           bottom: TabBar(
-//                             tabs: _tabs
-//                                 .map((String name) => Tab(text: name))
-//                                 .toList(),
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ];
-//                 },
-//             body: TabBarView(
-//               children: _tabs.map((String name) {
-//                 return SafeArea(
-//                   top: false,
-//                   bottom: false,
-//                   child: Builder(
-//                     builder: (BuildContext context) {
-//                       return NotificationListener<ScrollNotification>(
-//                         onNotification: (scrollNotification) {
-//                           return true;
-//                         },
-//                         child: CustomScrollView(
-//                           key: PageStorageKey<String>(name),
-//                           slivers: <Widget>[
-//                             SliverOverlapInjector(
-//                               handle:
-//                                   NestedScrollView.sliverOverlapAbsorberHandleFor(
-//                                     context,
-//                                   ),
-//                             ),
-//                             SliverPadding(
-//                               padding: const EdgeInsets.all(8.0),
-//                               sliver: SliverList(
-//                                 delegate: SliverChildBuilderDelegate((
-//                                   BuildContext context,
-//                                   int index,
-//                                 ) {
-//                                   return Column(
-//                                     children: <Widget>[
-//                                       Container(
-//                                         height: 150,
-//                                         width: double.infinity,
-//                                         color: Colors.blueGrey,
-//                                         child: Column(
-//                                           mainAxisAlignment:
-//                                               MainAxisAlignment.center,
-//                                           children: <Widget>[
-//                                             Text('$name $index'),
-//                                           ],
-//                                         ),
-//                                       ),
-//                                       SizedBox(height: 8),
-//                                     ],
-//                                   );
-//                                 }, childCount: 30),
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       );
-//                     },
-//                   ),
-//                 );
-//               }).toList(),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
