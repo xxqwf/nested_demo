@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 void main() {
   runApp(MaterialApp(home: NativeScrollWithCollapseAppBar()));
@@ -14,85 +15,169 @@ class NativeScrollWithCollapseAppBar extends StatefulWidget {
 class _NativeScrollWithCollapseAppBarState
     extends State<NativeScrollWithCollapseAppBar>
     with TickerProviderStateMixin {
-  late TabController _tabController;
-  late TabController _tabController2;
-  final tabs = ['Booking 1', 'Booking 2'];
-  final tabs2 = ['Request 1', 'Request 2'];
+  late TabController _bookingTabController;
+  late TabController _requestTabController;
+  late TabController _notificationTabController;
+  final List<String> bookingTabs = ['Booking 1', 'Booking 2'];
+  final List<String> requestTabs = ['Request 1', 'Request 2', 'Request 3'];
+  final List<String> notificationTabs = ['Notification 1', 'Notification 2'];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: tabs.length, vsync: this);
-    _tabController2 = TabController(length: tabs.length, vsync: this);
+    _bookingTabController = TabController(
+      length: bookingTabs.length,
+      vsync: this,
+    );
+    _requestTabController = TabController(
+      length: requestTabs.length,
+      vsync: this,
+    );
+    _notificationTabController = TabController(
+      length: notificationTabs.length,
+      vsync: this,
+    );
   }
 
-  ValueNotifier<int> currentIndex = ValueNotifier(0);
+  ValueNotifier<int> bottomNavigationIndex = ValueNotifier(0);
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: currentIndex,
+      valueListenable: bottomNavigationIndex,
       builder: (BuildContext context, int value, Widget? child) {
         return Scaffold(
           body: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
-                SliverAppBar(
-                  title: Text('Tab 滚动 + AppBar 折叠'),
-                  pinned: true,
-                  floating: true,
-                  forceElevated: innerBoxIsScrolled,
-                  bottom: TabBar(
-                    controller: value == 0 ? _tabController : _tabController2,
-                    tabs: (value == 0 ? tabs : tabs2)
-                        .map((e) => Tab(text: e))
-                        .toList(),
+                SliverOverlapAbsorber(
+                  handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                    context,
+                  ),
+                  sliver: MultiSliver(
+                    children: [
+                      SliverAppBar(
+                        expandedHeight: 135,
+                        flexibleSpace: FlexibleSpaceBar(
+                          title: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Manage for',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  'Rashid Al Mazrouei',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          background: Container(
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Good morning\nAhmed',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        backgroundColor: Color(0xFFCBA344),
+                        pinned: true,
+                        floating: true,
+                        forceElevated: innerBoxIsScrolled,
+                        // bottom: PreferredSize(
+                        //   preferredSize: Size.fromHeight(60),
+                        //   child: Container(
+                        //     color: Color(0xFFCBA344),
+                        //     padding: EdgeInsets.symmetric(
+                        //       horizontal: 20,
+                        //       vertical: 10,
+                        //     ),
+                        //     child: Row(
+                        //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //       children: [
+                        //         Text('Manage for'),
+                        //         Text('Rashid Al Mazrouei'),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+                      ),
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: _SliverAppBarDelegate(
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ValueListenableBuilder(
+                              valueListenable: bottomNavigationIndex,
+                              builder:
+                                  (
+                                    BuildContext context,
+                                    int value,
+                                    Widget? child,
+                                  ) {
+                                    return TabBar(
+                                      controller: _currentTabController(value),
+                                      tabs: _currentTabs(
+                                        value,
+                                      ).map((e) => Tab(text: e)).toList(),
+                                    );
+                                  },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                // SliverPersistentHeader(
-                //   pinned: true,
-                //   delegate: _SliverAppBarDelegate(
-                //     SizedBox(
-                //       width: double.infinity,
-                //       height: 50,
-                //       child: ValueListenableBuilder(
-                //         valueListenable: currentIndex,
-                //         builder:
-                //             (BuildContext context, int value, Widget? child) {
-                //               return TabBar(
-                //                 controller: value == 0
-                //                     ? _tabController
-                //                     : _tabController2,
-                //                 tabs: (value == 0 ? tabs : tabs2)
-                //                     .map((e) => Tab(text: e))
-                //                     .toList(),
-                //               );
-                //             },
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ];
             },
             body: TabBarView(
               physics: NeverScrollableScrollPhysics(),
-              controller: value == 0 ? _tabController : _tabController2,
-              children: (value == 0 ? tabs : tabs2).map((tabTitle) {
+              controller: _currentTabController(value),
+              children: _currentTabs(value).map((tabTitle) {
                 return SafeArea(
                   top: false,
                   child: Builder(
                     builder: (context) {
-                      return ListView.builder(
+                      return CustomScrollView(
                         key: PageStorageKey(tabTitle),
                         primary: true,
                         physics: ClampingScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        itemCount: 30,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text('$tabTitle - 第 $index 项'),
-                          );
-                        },
+                        slivers: [
+                          SliverOverlapInjector(
+                            handle:
+                                NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                  context,
+                                ),
+                          ),
+                          SliverList.builder(
+                            itemCount: 30,
+                            itemBuilder: (BuildContext context, int index) {
+                              return ListTile(
+                                title: Text('$tabTitle - 第 $index 项'),
+                              );
+                            },
+                          ),
+                        ],
                       );
                     },
                   ),
@@ -101,20 +186,44 @@ class _NativeScrollWithCollapseAppBarState
             ),
           ),
           bottomNavigationBar: PFBottomNavigationBar((int index) {
-            currentIndex.value = index;
-          }, currentIndex),
+            bottomNavigationIndex.value = index;
+          }, bottomNavigationIndex),
         );
       },
     );
+  }
+
+  TabController _currentTabController(int index) {
+    if (index == 0) {
+      return _bookingTabController;
+    } else if (index == 1) {
+      return _requestTabController;
+    } else {
+      return _notificationTabController;
+    }
+  }
+
+  List<String> _currentTabs(int index) {
+    if (index == 0) {
+      return bookingTabs;
+    } else if (index == 1) {
+      return requestTabs;
+    } else {
+      return notificationTabs;
+    }
   }
 }
 
 // ignore: must_be_immutable
 class PFBottomNavigationBar extends StatelessWidget {
   void Function(int)? onTap;
-  final ValueNotifier<int> currentIndex;
+  final ValueNotifier<int> bottomNavigationIndexIndex;
 
-  PFBottomNavigationBar(this.onTap, this.currentIndex, {super.key});
+  PFBottomNavigationBar(
+    this.onTap,
+    this.bottomNavigationIndexIndex, {
+    super.key,
+  });
 
   final List<Map<String, String>> bottomNavigationBarItems = [
     {'icon': 'assets/images/booking_selected.svg', 'text': 'Booking'},
@@ -164,7 +273,7 @@ class PFBottomNavigationBar extends StatelessWidget {
         height: 72,
         decoration: BoxDecoration(color: Colors.white),
         child: ValueListenableBuilder(
-          valueListenable: currentIndex,
+          valueListenable: bottomNavigationIndexIndex,
           builder: (BuildContext context, int value, Widget? child) {
             return Column(
               mainAxisSize: MainAxisSize.min,
