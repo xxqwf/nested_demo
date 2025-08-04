@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-
 // [SliverOverlapAbsorber] and [SliverOverlapInjector] 用于解决Appbar收缩时非当前显示的滑动组件出现的‘初始滑动偏移’
 // [CustomScrollView] 增加 PageStorageKey 用于缓存当前滑动偏移位置
 // CustomScrollView 的 primary: true 表示该滚动视图是“主要滚动视图”, 用于与NestedScrollView的滑动联动
-
 
 void main() {
   runApp(MaterialApp(home: NativeScrollWithCollapseAppBar()));
@@ -126,6 +124,13 @@ class _NativeScrollWithCollapseAppBarState
                         //     ),
                         //   ),
                         // ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: Container(
+                          height: 100,
+                          width: double.infinity,
+                          color: Colors.green,
+                        ),
                       ),
                       SliverPersistentHeader(
                         pinned: true,
