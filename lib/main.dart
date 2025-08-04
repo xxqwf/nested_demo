@@ -125,11 +125,26 @@ class _NativeScrollWithCollapseAppBarState
                         //   ),
                         // ),
                       ),
+                      SliverPinnedHeader(
+                        child: Container(
+                          color: Color(0xFFCBA344),
+                          child: Container(
+                            height: 20,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(24),
+                              ),
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                      ),
                       SliverToBoxAdapter(
                         child: Container(
                           height: 100,
                           width: double.infinity,
-                          color: Colors.green,
+                          color: Colors.orange,
                         ),
                       ),
                       SliverPersistentHeader(
